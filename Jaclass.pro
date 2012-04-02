@@ -12,9 +12,11 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    javaclass.cpp
+    javaclass.cpp \
+    constantpooltablemodel.cpp
 
 HEADERS  += mainwindow.h \
-    javaclass.h
+    javaclass.h \
+    constantpooltablemodel.h
 
 FORMS    += mainwindow.ui

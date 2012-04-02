@@ -3,22 +3,25 @@
 
 #include <QFile>
 #include <QMap>
+#include <QString>
+#include <QVariant>
 
 class JavaClass
 {
     public:
-        JavaClass();
-        void load(const QString & fileName);
 
-        quint16 getMinorVer();
-        quint16 getMajorVer();
-
-    private:
-        void showConstantPool();
-
-        quint16 minorVer;
-        quint16 majorVer;
-        quint16 constantPoolCount;
+        static const quint8 CONSTANT_INVALID = 0x00;
+        static const quint8 CONSTANT_STRING = 0x01;
+        static const quint8 CONSTANT_INTEGER = 0x03;
+        static const quint8 CONSTANT_FLOAT = 0x04;
+        static const quint8 CONSTANT_LONG = 0x05;
+        static const quint8 CONSTANT_DOUBLE = 0x06;
+        static const quint8 CONSTANT_CLASSREF = 0x07;
+        static const quint8 CONSTANT_STRINGREF = 0x08;
+        static const quint8 CONSTANT_FIELDREF = 0x09;
+        static const quint8 CONSTANT_METHODREF = 0x0A;
+        static const quint8 CONSTANT_INTMETHODREF = 0x0B;
+        static const quint8 CONSTANT_NAMETYPEDESC = 0x0C;
 
         struct constant {
             quint8 tag;
@@ -32,6 +35,7 @@ class JavaClass
                 qint64 longval;
                 double doubleval;
                 quint16 ref;
+
                 struct {
                     quint16 classref;
                     quint16 nametypedesc;
@@ -43,6 +47,28 @@ class JavaClass
                 };
             };
         };
+
+        JavaClass();
+        void load(const QString & fileName);
+        void unload();
+
+        quint16 getMinorVer();
+        quint16 getMajorVer();
+        bool isLoaded();
+
+        QMap<quint16, constant> & getConstantPool();
+
+        static QString fromClassString(const unsigned char * str, unsigned int len);
+
+    private:
+        void showConstantPool();
+
+        bool loaded;
+
+        quint16 minorVer;
+        quint16 majorVer;
+        quint16 constantPoolCount;
+
 
         // This can't be a list because of Java engineers' stupid decision.
         QMap<quint16, constant> constantPool;
@@ -77,18 +103,6 @@ class JavaClass
             quint16 attributesCount;
         };
 
-        static const quint8 CONSTANT_INVALID = 0x00;
-        static const quint8 CONSTANT_STRING = 0x01;
-        static const quint8 CONSTANT_INTEGER = 0x03;
-        static const quint8 CONSTANT_FLOAT = 0x04;
-        static const quint8 CONSTANT_LONG = 0x05;
-        static const quint8 CONSTANT_DOUBLE = 0x06;
-        static const quint8 CONSTANT_CLASSREF = 0x07;
-        static const quint8 CONSTANT_STRINGREF = 0x08;
-        static const quint8 CONSTANT_FIELDREF = 0x09;
-        static const quint8 CONSTANT_METHODREF = 0x0A;
-        static const quint8 CONSTANT_INTMETHODREF = 0x0B;
-        static const quint8 CONSTANT_NAMETYPEDESC = 0x0C;
 
         static const quint16 CLASS_ACC_PUBLIC = 0x0001;
         static const quint16 CLASS_ACC_FINAL = 0x0010;

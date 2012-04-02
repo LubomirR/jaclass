@@ -1,6 +1,9 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "javaclass.h"
+#include "constantpooltablemodel.h"
+
+#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -28,8 +31,14 @@ void MainWindow::on_action_Load_triggered()
         if (files.length() >= 1) {
             QString file = files[0];
 
-            JavaClass jc;
-            jc.load(file);
+            javaClass.load(file);
+
+            ui->constantPool->setModel(new ConstantPoolTableModel(javaClass));
         }
     }
+}
+
+void MainWindow::on_actionAbout_Qt_triggered()
+{
+    qApp->aboutQt();
 }
