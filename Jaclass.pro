@@ -13,10 +13,20 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp \
     javaclass.cpp \
-    constantpooltablemodel.cpp
+    constantpooltablemodel.cpp \
+    addeditconstantdialog.cpp \
+    javaconstantpool.cpp \
+    javahelper.cpp
 
 HEADERS  += mainwindow.h \
     javaclass.h \
-    constantpooltablemodel.h
+    constantpooltablemodel.h \
+    addeditconstantdialog.h \
+    javaconstantpool.h \
+    javahelper.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    addeditconstantdialog.ui
+
+OTHER_FILES += \
+    README

@@ -1,4 +1,5 @@
 #include "constantpooltablemodel.h"
+#include "javahelper.h"
 
 ConstantPoolTableModel::ConstantPoolTableModel(JavaClass & jClass, QObject *parent) :
     QAbstractTableModel(parent),
@@ -12,7 +13,7 @@ int ConstantPoolTableModel::rowCount(const QModelIndex & parent) const
         return 0;
     }
 
-    return javaClass.getConstantPool().size();
+    return javaClass.getConstantPool().getSize();
 }
 
 int ConstantPoolTableModel::columnCount(const QModelIndex & parent) const
@@ -32,43 +33,77 @@ QVariant ConstantPoolTableModel::data(const QModelIndex & index, int role) const
 
     switch(role) {
         case Qt::DisplayRole:
-            if (row < javaClass.getConstantPool().size()) {
-                if (col == 0) {
-                    QList<quint16> keys = javaClass.getConstantPool().keys();
-                    return keys[row];
-                } else if (col == 1) {
-                    QList<JavaClass::constant> values = javaClass.getConstantPool().values();
-                    JavaClass::constant con = values[row];
+            if (row < javaClass.getConstantPool().getSize()) {
+                quint16 index = javaClass.getConstantPool().numToIndex(row);
+                const JavaConstantPool::constant & con = javaClass.getConstantPool().getConstantByIndex(index);
 
+                if (col == 0) {
+                    return JavaHelper::constantTypeToName(con.tag);
+                } else if (col == 1) {
                     switch (con.tag) {
-                        case JavaClass::CONSTANT_INVALID:
-                            return "(invalid)";
-                        case JavaClass::CONSTANT_STRING:
-                            return "String: '" + JavaClass::fromClassString(con.strdata, con.strlength) + "'";
-                        case JavaClass::CONSTANT_INTEGER:
+                        case JavaConstantPool::CONSTANT_INVALID:
+                            return tr("(none)");
+                        case JavaConstantPool::CONSTANT_STRING:
+                            return JavaHelper::fromClassString(con.strdata, con.strlength);
+                        case JavaConstantPool::CONSTANT_INTEGER:
                             return con.intval;
-                        case JavaClass::CONSTANT_FLOAT:
+                        case JavaConstantPool::CONSTANT_FLOAT:
                             return con.floatval;
-                        case JavaClass::CONSTANT_LONG:
+                        case JavaConstantPool::CONSTANT_LONG:
                             return con.longval;
-                        case JavaClass::CONSTANT_DOUBLE:
+                        case JavaConstantPool::CONSTANT_DOUBLE:
                             return con.doubleval;
-                        case JavaClass::CONSTANT_CLASSREF:
-                            return "Class ref: " + QString().setNum(con.ref);
-                        case JavaClass::CONSTANT_STRINGREF:
-                            return "String ref: " + QString().setNum(con.ref);
-                        case JavaClass::CONSTANT_FIELDREF:
-                            return "Field ref: " + QString().setNum(con.classref) + " " + QString().setNum(con.nametypedesc);
-                        case JavaClass::CONSTANT_METHODREF:
-                            return "Method ref: " + QString().setNum(con.classref) + " " + QString().setNum(con.nametypedesc);
-                        case JavaClass::CONSTANT_INTMETHODREF:
-                            return "Interface method ref: " + QString().setNum(con.classref) + " " + QString().setNum(con.nametypedesc);
-                        case JavaClass::CONSTANT_NAMETYPEDESC:
-                            return "Nametype desc: " + QString().setNum(con.namedesc) + " " + QString().setNum(con.typedesc);
+                        case JavaConstantPool::CONSTANT_CLASSREF:
+                        case JavaConstantPool::CONSTANT_STRINGREF:
+                            if (javaClass.getConstantPool().isIndexValid(con.ref, JavaConstantPool::CONSTANT_STRING)) {
+                                const JavaConstantPool::constant & cref = javaClass.getConstantPool().getConstantByIndex(con.ref);
+                                return QString().setNum(con.ref) + " ('" + JavaHelper::fromClassString(cref.strdata, cref.strlength) + "')";
+                            } else {
+                                return QString().setNum(con.ref) + " (invalid)";
+                            }
+
+                        case JavaConstantPool::CONSTANT_FIELDREF:
+                            return QString().setNum(con.classref) + " " + QString().setNum(con.nametypedesc);
+                        case JavaConstantPool::CONSTANT_METHODREF:
+                            return QString().setNum(con.classref) + " " + QString().setNum(con.nametypedesc);
+                        case JavaConstantPool::CONSTANT_INTMETHODREF:
+                            return QString().setNum(con.classref) + " " + QString().setNum(con.nametypedesc);
+                        case JavaConstantPool::CONSTANT_NAMETYPEDESC:
+                            {
+                                QString name = "(invalid)";
+                                QString type = "(invalid!";
+                                if (javaClass.getConstantPool().isIndexValid(con.namedesc, JavaConstantPool::CONSTANT_STRING)) {
+                                    const JavaConstantPool::constant & cref = javaClass.getConstantPool().getConstantByIndex(con.namedesc);
+                                    name = JavaHelper::fromClassString(cref.strdata, cref.strlength);
+                                }
+                                if (javaClass.getConstantPool().isIndexValid(con.typedesc, JavaConstantPool::CONSTANT_STRING)) {
+                                    const JavaConstantPool::constant & cref = javaClass.getConstantPool().getConstantByIndex(con.typedesc);
+                                    type = JavaHelper::fromClassString(cref.strdata, cref.strlength);
+                                }
+                                return QString().setNum(con.namedesc) + " ('" + name + "') " + QString().setNum(con.typedesc) + "('" + type + "')";
+                            }
                     }
                 }
             }
             break;
+    }
+
+    return QVariant();
+}
+
+QVariant ConstantPoolTableModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    if (role == Qt::DisplayRole) {
+        if (orientation == Qt::Horizontal) {
+            switch (section) {
+                case 0:
+                    return tr("Type");
+                case 1:
+                    return tr("Value");
+            }
+        } else if (orientation == Qt::Vertical) {
+            return javaClass.getConstantPool().numToIndex(section);
+        }
     }
 
     return QVariant();

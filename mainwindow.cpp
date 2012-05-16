@@ -3,7 +3,10 @@
 #include "javaclass.h"
 #include "constantpooltablemodel.h"
 
+#include <QDebug>
 #include <QMessageBox>
+
+#include "addeditconstantdialog.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -19,7 +22,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_action_Load_triggered()
 {
-    QFileDialog fd;
+    QFileDialog fd(this);
 
     fd.setNameFilter("Java Class Files(*.class)");
     fd.setFileMode(QFileDialog::ExistingFile);
@@ -41,4 +44,12 @@ void MainWindow::on_action_Load_triggered()
 void MainWindow::on_actionAbout_Qt_triggered()
 {
     qApp->aboutQt();
+}
+
+void MainWindow::on_constantPool_doubleClicked(const QModelIndex & index)
+{
+    qDebug() << "DOUBLE CLICK!";
+    AddEditConstantDialog dlg(javaClass, javaClass.getConstantPool().numToIndex(index.row()), this);
+
+    dlg.exec();
 }

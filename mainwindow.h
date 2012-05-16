@@ -22,7 +22,9 @@ class MainWindow : public QMainWindow
 
         void on_actionAbout_Qt_triggered();
 
-    private:
+        void on_constantPool_doubleClicked(const QModelIndex &index);
+
+private:
         Ui::MainWindow * ui;
         JavaClass javaClass;
 
